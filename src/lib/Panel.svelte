@@ -49,6 +49,19 @@
     return () => window.removeEventListener('hashchange', onHash);
   });
 
+  // Auto-logout if the session expires in real-time.
+  $effect(() => {
+    if (!session || !session.expires_at) return;
+    const checkExpiry = () => {
+      if (session && session.expires_at && session.expires_at * 1000 < Date.now()) {
+        logout();
+      }
+    };
+    checkExpiry();
+    const interval = setInterval(checkExpiry, 5000);
+    return () => clearInterval(interval);
+  });
+
   function onlogin(s: Session) {
     session = s;
     localStorage.setItem(storeKey, JSON.stringify(s));
