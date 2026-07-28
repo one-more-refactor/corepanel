@@ -49,6 +49,21 @@
     return () => window.removeEventListener('hashchange', onHash);
   });
 
+  // Active session expiration auto-logout
+  $effect(() => {
+    if (!session || !session.expires_at) return;
+    const expiresMs = session.expires_at * 1000;
+    const delay = expiresMs - Date.now();
+    if (delay <= 0) {
+      logout();
+      return;
+    }
+    const timer = setTimeout(() => {
+      logout();
+    }, delay);
+    return () => clearTimeout(timer);
+  });
+
   function onlogin(s: Session) {
     session = s;
     localStorage.setItem(storeKey, JSON.stringify(s));
