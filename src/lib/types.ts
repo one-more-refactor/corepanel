@@ -96,6 +96,8 @@ export interface Field {
   label: string;
   type: 'text' | 'textarea' | 'toggle';
   placeholder?: string;
+  /** Maximum length of the input. Defaults to 1024 for text and 65536 for textarea. */
+  maxlength?: number;
 }
 
 export interface FormDef {
