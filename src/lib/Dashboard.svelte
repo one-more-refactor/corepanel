@@ -21,12 +21,18 @@
   let error = $state('');
   let stamp = $state<Date | null>(null);
 
+  let currentReqId = 0;
+
   async function fetchData() {
+    const reqId = ++currentReqId;
     try {
-      data = await load(session);
+      const res = await load(session);
+      if (reqId !== currentReqId) return;
+      data = res;
       stamp = new Date();
       error = '';
     } catch (err) {
+      if (reqId !== currentReqId) return;
       error = err instanceof Error ? err.message : 'load failed';
     }
   }
@@ -34,7 +40,9 @@
   $effect(() => {
     fetchData();
     if (refresh) {
-      const t = setInterval(fetchData, refresh * 1000);
+      // Enforce a minimum interval of 5 seconds to mitigate high-frequency api polling DoS risks.
+      const interval = Math.max(5, refresh);
+      const t = setInterval(fetchData, interval * 1000);
       return () => clearInterval(t);
     }
   });
