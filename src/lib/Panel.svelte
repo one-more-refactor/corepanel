@@ -28,7 +28,16 @@
     } catch {
       localStorage.removeItem(storeKey);
     }
-    if (!stored || (stored.expires_at && stored.expires_at * 1000 < Date.now())) {
+    const isValidSession = (s: any): s is Session => {
+      return (
+        !!s &&
+        typeof s === 'object' &&
+        typeof s.token === 'string' &&
+        typeof s.label === 'string' &&
+        (s.expires_at === undefined || typeof s.expires_at === 'number')
+      );
+    };
+    if (!isValidSession(stored) || (stored.expires_at && stored.expires_at * 1000 < Date.now())) {
       localStorage.removeItem(storeKey);
       checking = false;
       return;

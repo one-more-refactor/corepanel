@@ -96,6 +96,9 @@ export interface Field {
   label: string;
   type: 'text' | 'textarea' | 'toggle';
   placeholder?: string;
+  required?: boolean;
+  maxlength?: number;
+  pattern?: string;
 }
 
 export interface FormDef {
