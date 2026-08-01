@@ -38,17 +38,20 @@
   }
 
   async function runAction(ri: number, ai: number) {
+    if (busy) return;
     const action = resource.actions![ai];
     if (action.danger && (confirming?.row !== ri || confirming?.action !== ai)) {
       confirming = { row: ri, action: ai };
       return;
     }
     confirming = null;
+    busy = true;
     try {
       await action.run(session, rows[ri]);
       await fetchRows();
     } catch (err) {
       error = err instanceof Error ? err.message : 'action failed';
+      busy = false;
     }
   }
 
@@ -103,6 +106,7 @@
                       class="act"
                       class:danger={action.danger}
                       type="button"
+                      disabled={busy}
                       onclick={() => runAction(ri, ai)}
                     >
                       {confirming?.row === ri && confirming?.action === ai ? 'sure?' : action.label}
@@ -124,7 +128,7 @@
     <div class="cp-pager">
       <button
         type="button"
-        disabled={offset === 0}
+        disabled={offset === 0 || busy}
         onclick={() => {
           offset = Math.max(0, offset - pageSize);
           fetchRows();
@@ -133,7 +137,7 @@
       <span>{offset + 1}–{Math.min(offset + pageSize, total)} of {total}</span>
       <button
         type="button"
-        disabled={offset + pageSize >= total}
+        disabled={offset + pageSize >= total || busy}
         onclick={() => {
           offset += pageSize;
           fetchRows();
