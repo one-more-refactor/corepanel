@@ -15,6 +15,18 @@
 
   let page = $derived(config.pages.find((p) => p.id === pageId) ?? config.pages[0]);
 
+  function isValidSession(s: any): s is Session {
+    return (
+      s &&
+      typeof s === 'object' &&
+      typeof s.token === 'string' &&
+      s.token.trim() !== '' &&
+      typeof s.label === 'string' &&
+      s.label.trim() !== '' &&
+      (s.expires_at === undefined || (typeof s.expires_at === 'number' && !isNaN(s.expires_at)))
+    );
+  }
+
   // Restore a persisted session; drop it if expired or rejected by check().
   $effect(() => {
     const raw = localStorage.getItem(storeKey);
@@ -28,7 +40,7 @@
     } catch {
       localStorage.removeItem(storeKey);
     }
-    if (!stored || (stored.expires_at && stored.expires_at * 1000 < Date.now())) {
+    if (!stored || !isValidSession(stored) || (stored.expires_at && stored.expires_at * 1000 < Date.now())) {
       localStorage.removeItem(storeKey);
       checking = false;
       return;
@@ -72,6 +84,9 @@
   });
 
   function onlogin(s: Session) {
+    if (!isValidSession(s)) {
+      throw new Error('invalid session: missing token or label');
+    }
     session = s;
     localStorage.setItem(storeKey, JSON.stringify(s));
   }
