@@ -15,6 +15,18 @@
 
   let page = $derived(config.pages.find((p) => p.id === pageId) ?? config.pages[0]);
 
+  function isValidSession(s: any): s is Session {
+    return (
+      s &&
+      typeof s === 'object' &&
+      typeof s.token === 'string' &&
+      s.token.trim() !== '' &&
+      typeof s.label === 'string' &&
+      s.label.trim() !== '' &&
+      (s.expires_at === undefined || (typeof s.expires_at === 'number' && !isNaN(s.expires_at)))
+    );
+  }
+
   // Restore a persisted session; drop it if expired or rejected by check().
   $effect(() => {
     const raw = localStorage.getItem(storeKey);
@@ -24,7 +36,10 @@
     }
     let stored: Session | null = null;
     try {
-      stored = JSON.parse(raw) as Session;
+      const parsed = JSON.parse(raw);
+      if (isValidSession(parsed)) {
+        stored = parsed;
+      }
     } catch {
       localStorage.removeItem(storeKey);
     }
@@ -72,6 +87,10 @@
   });
 
   function onlogin(s: Session) {
+    if (!isValidSession(s)) {
+      console.error('Security alert: Invalid session object received during login.');
+      return;
+    }
     session = s;
     localStorage.setItem(storeKey, JSON.stringify(s));
   }
