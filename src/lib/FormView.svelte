@@ -10,13 +10,21 @@
   let busy = $state(false);
 
   $effect(() => {
+    let active = true;
     form
       .load(session)
       .then((v) => {
+        if (!active) return;
         values = { ...v };
         loaded = true;
       })
-      .catch((err) => (error = err instanceof Error ? err.message : 'load failed'));
+      .catch((err) => {
+        if (!active) return;
+        error = err instanceof Error ? err.message : 'load failed';
+      });
+    return () => {
+      active = false;
+    };
   });
 
   async function save(e: SubmitEvent) {

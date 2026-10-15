@@ -13,18 +13,25 @@
   /** Row index whose danger action is awaiting the "sure?" click. */
   let confirming = $state<{ row: number; action: number } | null>(null);
 
+  let currentReqId = 0;
+
   async function fetchRows() {
     busy = true;
+    const reqId = ++currentReqId;
     try {
       const res = await resource.load(session, { q, limit: pageSize, offset });
+      if (reqId !== currentReqId) return;
       total = res.total;
       rows = res.rows;
       error = '';
     } catch (err) {
+      if (reqId !== currentReqId) return;
       error = err instanceof Error ? err.message : 'load failed';
     } finally {
-      busy = false;
-      confirming = null;
+      if (reqId === currentReqId) {
+        busy = false;
+        confirming = null;
+      }
     }
   }
 

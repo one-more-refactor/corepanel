@@ -28,12 +28,19 @@
     } catch {
       localStorage.removeItem(storeKey);
     }
-    if (!stored || (stored.expires_at && stored.expires_at * 1000 < Date.now())) {
+    if (
+      !stored ||
+      typeof stored !== 'object' ||
+      typeof stored.token !== 'string' ||
+      typeof stored.label !== 'string' ||
+      (stored.expires_at !== undefined && typeof stored.expires_at !== 'number') ||
+      (stored.expires_at && stored.expires_at * 1000 < Date.now())
+    ) {
       localStorage.removeItem(storeKey);
       checking = false;
       return;
     }
-    const candidate = stored;
+    const candidate: Session = stored;
     (config.auth.check ? config.auth.check(candidate) : Promise.resolve(true))
       .then((ok) => {
         if (ok) session = candidate;
