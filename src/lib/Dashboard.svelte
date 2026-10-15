@@ -33,8 +33,10 @@
 
   $effect(() => {
     fetchData();
-    if (refresh) {
-      const t = setInterval(fetchData, refresh * 1000);
+    if (refresh && refresh > 0) {
+      // Enforce a minimum of 1 second interval to prevent rapid request flooding (DoS mitigation)
+      const intervalMs = Math.max(1, refresh) * 1000;
+      const t = setInterval(fetchData, intervalMs);
       return () => clearInterval(t);
     }
   });

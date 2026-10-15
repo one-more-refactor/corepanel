@@ -45,9 +45,18 @@
       <label class="field" class:row={field.type === 'toggle'}>
         <span>{field.label}</span>
         {#if field.type === 'text'}
-          <input type="text" bind:value={values[field.key]} placeholder={field.placeholder ?? ''} />
+          <input
+            type="text"
+            bind:value={values[field.key]}
+            placeholder={field.placeholder ?? ''}
+            maxlength={field.maxlength ?? 1024}
+          />
         {:else if field.type === 'textarea'}
-          <textarea rows="3" bind:value={values[field.key]} placeholder={field.placeholder ?? ''}
+          <textarea
+            rows="3"
+            bind:value={values[field.key]}
+            placeholder={field.placeholder ?? ''}
+            maxlength={field.maxlength ?? 65536}
           ></textarea>
         {:else if field.type === 'toggle'}
           <button
